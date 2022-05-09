@@ -7,9 +7,10 @@ function Title ({children}) {
 const styles = StyleSheet.create ({
     titelContainer: {
         fontSize: 24,
-        fontWeight: 'bold',
+        //fontWeight: 'bold',
+        fontFamily: 'open-sans-bold',
         color: 'white',
-        padding:2,
+        padding:10,
         textAlign: 'center',
         borderWidth: 2,
         borderColor: 'white'

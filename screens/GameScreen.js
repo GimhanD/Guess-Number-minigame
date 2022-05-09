@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import Card from "../components/Card";
+import { useState, useEffect } from "react";
+import { View, StyleSheet, Alert, Text, FlatList } from "react-native";
 import NumberContainer from "../components/NumberContainer";
 import PrimaryButton from "../components/PrimaryButton";
 import Title from "../components/Title";
+import InstructionText from "../components/InstructionText";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import GuessLogItem from "../components/GuessLogItem";
 
 function generateRandomBetween(min, max, exclude) {
     const rndNum = Math.floor(Math.random() * (max - min)) + min;
@@ -13,14 +17,27 @@ function generateRandomBetween(min, max, exclude) {
       return rndNum;
     }
   }
+let minBoundary = 1;
+let maxBoundary = 100;
+  
 
 
-function GameScreen({userNumber}) {
-    let maxBoundary = 100;
-    let minBoundary = 1;
-
-    const initialGuess = generateRandomBetween(minBoundary,maxBoundary, userNumber);
+function GameScreen({userNumber, onGameOver}) {
+    const initialGuess = generateRandomBetween(1,100, userNumber);
     const [currentGuess, setCurrentGues] = useState(initialGuess); 
+    const [guessRounds, setGuessRounds] = useState([initialGuess]);
+
+    useEffect (() => {
+      if ( currentGuess === userNumber) {
+        onGameOver(guessRounds.length);
+      }
+    }, [currentGuess, userNumber, onGameOver]);
+
+    useEffect (() => {
+      minBoundary = 1;
+      maxBoundary = 100;
+       
+    }, []);
 
     function nextGuessHandler(direction) {
       if (
@@ -46,7 +63,10 @@ function GameScreen({userNumber}) {
       }
       const newRndNumber = generateRandomBetween(minBoundary,maxBoundary, currentGuess);
       setCurrentGues(newRndNumber);
+      setGuessRounds(prevGuessRounds => [newRndNumber, ...prevGuessRounds]);
     }
+
+    const guessRoundsListLength = guessRounds.length;
 
     
     return (
@@ -55,14 +75,25 @@ function GameScreen({userNumber}) {
                 <Title>Oppenent's Number</Title>
                 <NumberContainer>{currentGuess}</NumberContainer>
             </View>
-            <View>
-                <Text>Higher or Lower</Text>   
-                  <View>
-                    <PrimaryButton onPress={nextGuessHandler.bind(this, 'lower')}>-</PrimaryButton>
-                    <PrimaryButton onPress={nextGuessHandler.bind(this, 'greater')}>+</PrimaryButton>
+            <Card>
+                <InstructionText style={styles.instrcutionTextCase}>Higher or Lower</InstructionText>   
+                  <View style={styles.buttonsField}>
+                    <View style={styles.buttonContainer}><PrimaryButton onPress={nextGuessHandler.bind(this, 'lower')}>
+                      <Ionicons name='remove-circle-outline' size={24} />
+                    </PrimaryButton></View>
+                    <View style={styles.buttonContainer}><PrimaryButton onPress={nextGuessHandler.bind(this, 'greater')}>
+                    <Ionicons name='add-circle-outline' size={24} />
+                      </PrimaryButton></View>
                 </View>     
-            </View>
-            <View>
+            </Card>
+            <View style={styles.listContainer}>
+              {/* {guessRounds.map(guessRounds => <Text key={guessRounds}>{guessRounds}</Text>)} */}
+
+              <FlatList
+                data={guessRounds}
+                renderItem={(itemData) => <GuessLogItem roundNumber={guessRoundsListLength - itemData.index} guess={itemData.item}/>}
+                keyExtractor={(item) => item}
+              ></FlatList>
             </View>
         </View>
     );
@@ -70,8 +101,22 @@ function GameScreen({userNumber}) {
 
 const styles = StyleSheet.create({
     gameContainer: {
-      margin: 50
-    }
+      margin: 50,
+      flex: 1
+    },
+    instrcutionTextCase: {
+      margin: 20
+    },
+    buttonsField: {
+      flexDirection: "row",
+  },
+    buttonContainer: {
+      flex:1
+  },
+  listContainer: {
+    flex: 1,
+    padding: 16
+  }
   });
 
 export default GameScreen;
